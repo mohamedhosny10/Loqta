@@ -1,0 +1,15 @@
+import { ReportForm } from '@/components/ReportForm';
+
+export default function ReportPage() {
+  return (
+    <section className="max-w-3xl mx-auto px-4 py-16">
+      <h1 className="text-3xl md:text-4xl font-bold mb-6">Report an Item</h1>
+      <p className="text-gray-600 mb-8">
+        Provide details about the lost or found item. Your report helps the community reconnect items with their owners.
+      </p>
+      <ReportForm />
+    </section>
+  );
+}
+
+

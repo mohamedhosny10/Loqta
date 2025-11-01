@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+html, body {
+  background-color: #FFFFFF;
+}
+
+/* Ensure video overlays sit nicely */
+video { display: block; }
+
+/* Prevent Leaflet map from overflowing navbar */
+.leaflet-container {
+  z-index: 0 !important;
+}
+
+.leaflet-popup,
+.leaflet-control {
+  z-index: 30 !important;
+}
+
+
