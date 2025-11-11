@@ -2,7 +2,7 @@
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { Item } from './ItemCard';
-import L, { type LatLngTuple } from 'leaflet';
+import L, { type LatLng } from 'leaflet';
 
 // Fix default icon paths for Leaflet in Next.js
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -13,18 +13,18 @@ import L, { type LatLngTuple } from 'leaflet';
 });
 
 export default function MapView({ items }: { items: Item[] }) {
-  const center: LatLngTuple = items.length
-    ? [items[0].lat, items[0].lng]
-    : [25.2048, 55.2708];
+  const center: LatLng = items.length
+    ? L.latLng(items[0].lat, items[0].lng)
+    : L.latLng(25.2048, 55.2708);
 
   return (
-    <MapContainer center={center as LatLngTuple} zoom={12} scrollWheelZoom={false} className="h-full w-full">
+    <MapContainer center={center} zoom={12} scrollWheelZoom={false} className="h-full w-full">
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       {items.map((item) => (
-        <Marker key={item.id} position={[item.lat, item.lng] as [number, number]}>
+        <Marker key={item.id} position={L.latLng(item.lat, item.lng)}>
           <Popup>
             <div className="text-sm">
               <p className="font-semibold">{item.title}</p>
