@@ -13,8 +13,8 @@ import L from 'leaflet';
 });
 
 export default function MapView({ items }: { items: Item[] }) {
-  const center = items.length
-    ? [items[0].lat, items[0].lng] as [number, number]
+  const center: [number, number] = items.length
+    ? [items[0].lat, items[0].lng]
     : [25.2048, 55.2708];
 
   return (
