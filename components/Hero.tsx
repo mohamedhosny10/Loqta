@@ -33,7 +33,7 @@ export function Hero() {
           Find or report lost items easily with Loqta — because every item deserves to find its way home.
         </motion.p>
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="flex gap-4">
-          <Link href="/report" className="bg-primary text-black px-6 py-3 rounded-full font-semibold hover:opacity-90 transition-transform hover:scale-[1.03] shadow">
+          <Link href="/signin" className="bg-primary text-black px-6 py-3 rounded-full font-semibold hover:opacity-90 transition-transform hover:scale-[1.03] shadow">
             Get Started
           </Link>
           <Link href="/items" className="bg-white/10 backdrop-blur px-6 py-3 rounded-full font-semibold hover:bg-white/20 transition-transform hover:scale-[1.02]">

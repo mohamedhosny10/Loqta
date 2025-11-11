@@ -31,7 +31,7 @@ export function Footer() {
             <div>
               <h4 className="font-semibold mb-3">Contact</h4>
               <ul className="space-y-2 text-sm text-white/80" id="contact">
-                <li><a href="mailto:hello@loqta.app" className="hover:text-primary">hello@loqta.app</a></li>
+                <li><a href="mailto:mh.hosnyy10@gmail.com" className="hover:text-primary">mh.hosnyy10@gmail.com</a></li>
                 <li><a href="mailto:support@loqta.app" className="hover:text-primary">support@loqta.app</a></li>
               </ul>
             </div>
