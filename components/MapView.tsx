@@ -2,7 +2,7 @@
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { Item } from './ItemCard';
-import L from 'leaflet';
+import L, { type LatLngTuple } from 'leaflet';
 
 // Fix default icon paths for Leaflet in Next.js
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -13,12 +13,12 @@ import L from 'leaflet';
 });
 
 export default function MapView({ items }: { items: Item[] }) {
-  const center: [number, number] = items.length
+  const center: LatLngTuple = items.length
     ? [items[0].lat, items[0].lng]
     : [25.2048, 55.2708];
 
   return (
-    <MapContainer center={center} zoom={12} scrollWheelZoom={false} className="h-full w-full">
+    <MapContainer center={center as LatLngTuple} zoom={12} scrollWheelZoom={false} className="h-full w-full">
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
