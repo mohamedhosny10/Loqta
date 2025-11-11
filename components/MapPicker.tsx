@@ -12,13 +12,13 @@ import L from 'leaflet';
 });
 
 function ClickHandler({ onPick }: { onPick: (pos: { lat: number; lng: number }) => void }) {
-  const [pos, setPos] = useState<[number, number] | null>(null);
+  const [pos, setPos] = useState<L.LatLng | null>(null);
   
   useMapEvents({
     click(e) {
-      const next: [number, number] = [e.latlng.lat, e.latlng.lng];
+      const next = L.latLng(e.latlng.lat, e.latlng.lng);
       setPos(next);
-      onPick({ lat: next[0], lng: next[1] });
+      onPick({ lat: next.lat, lng: next.lng });
     }
   });
 
@@ -28,7 +28,7 @@ function ClickHandler({ onPick }: { onPick: (pos: { lat: number; lng: number }) 
 export default function MapPicker({ onPick }: { onPick: (pos: { lat: number; lng: number }) => void }) {
   return (
     <MapContainer 
-      center={[25.2048, 55.2708]} 
+      center={L.latLng(25.2048, 55.2708)} 
       zoom={12} 
       scrollWheelZoom={false} 
       className="h-full w-full"

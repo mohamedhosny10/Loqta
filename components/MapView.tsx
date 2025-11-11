@@ -14,8 +14,8 @@ import L from 'leaflet';
 
 export default function MapView({ items }: { items: Item[] }) {
   const center = items.length
-    ? [items[0].lat, items[0].lng] as [number, number]
-    : [25.2048, 55.2708];
+    ? L.latLng(items[0].lat, items[0].lng)
+    : L.latLng(25.2048, 55.2708);
 
   return (
     <MapContainer center={center} zoom={12} scrollWheelZoom={false} className="h-full w-full">
@@ -24,7 +24,7 @@ export default function MapView({ items }: { items: Item[] }) {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       {items.map((item) => (
-        <Marker key={item.id} position={[item.lat, item.lng]}>
+        <Marker key={item.id} position={L.latLng(item.lat, item.lng)}>
           <Popup>
             <div className="text-sm">
               <p className="font-semibold">{item.title}</p>
