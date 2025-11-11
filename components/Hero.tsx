@@ -7,7 +7,7 @@ export function Hero() {
     <section className="relative h-[90vh] min-h-[560px] w-full overflow-hidden">
       <video
         className="absolute inset-0 h-full w-full object-cover"
-        src="/Lost&Found (1).mp4"
+        src="/Lost&FOund (1).mp4"
         autoPlay
         loop
         muted
