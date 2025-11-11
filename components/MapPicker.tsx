@@ -28,7 +28,7 @@ function ClickHandler({ onPick }: { onPick: (pos: { lat: number; lng: number }) 
 export default function MapPicker({ onPick }: { onPick: (pos: { lat: number; lng: number }) => void }) {
   return (
     <MapContainer 
-      center={[25.2048, 55.2708]} 
+      center={[25.2048, 55.2708] as [number, number]} 
       zoom={12} 
       scrollWheelZoom={false} 
       className="h-full w-full"

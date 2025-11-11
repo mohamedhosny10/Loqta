@@ -24,7 +24,7 @@ export default function MapView({ items }: { items: Item[] }) {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       {items.map((item) => (
-        <Marker key={item.id} position={[item.lat, item.lng]}>
+        <Marker key={item.id} position={[item.lat, item.lng] as [number, number]}>
           <Popup>
             <div className="text-sm">
               <p className="font-semibold">{item.title}</p>
