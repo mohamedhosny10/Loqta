@@ -123,10 +123,12 @@ export default function SignUpPage() {
     setIsOAuthLoading(true);
     setShowOAuthModal(true);
     const supabase = getSupabase();
+    // Use environment variable if available, otherwise use current origin
+    const redirectUrl = process.env.NEXT_PUBLIC_APP_URL || (typeof window !== 'undefined' ? window.location.origin : 'https://loqtalf.vercel.app');
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/items`
+        redirectTo: `${redirectUrl}/items`
       }
     });
     if (error) {
