@@ -1,11 +1,8 @@
 "use client";
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { useState } from 'react';
 
 export function Hero() {
-  const [videoLoaded, setVideoLoaded] = useState(false);
-
   return (
     <section className="relative h-[90vh] min-h-[560px] w-full overflow-hidden">
       <video
@@ -15,13 +12,7 @@ export function Hero() {
         loop
         muted
         playsInline
-        preload="metadata"
-        onLoadedData={() => setVideoLoaded(true)}
-        onCanPlay={() => setVideoLoaded(true)}
       />
-      {!videoLoaded && (
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-gray-700 animate-pulse" />
-      )}
       <div className="absolute inset-0 bg-black/40" />
 
       <div className="relative z-10 max-w-6xl mx-auto px-4 h-full flex flex-col items-center justify-center text-center text-white">
