@@ -184,7 +184,7 @@ export function NotificationBell() {
       
       // Check if response was successful
       if (response.ok) {
-        // Check if data.success exists (for Resend/SendGrid) or if there's no error
+        // Check if data.success exists (for SMTP) or if there's no error
         if (data.success !== false && !data.error) {
           setSelectedNotification(null);
           setEmailResult({

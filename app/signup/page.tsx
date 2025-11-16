@@ -1,12 +1,13 @@
 "use client";
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { getSupabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Eye, EyeOff } from 'lucide-react';
+import Image from 'next/image';
+import { Eye, EyeOff, Upload, X, User } from 'lucide-react';
 import { Toast, type ToastType } from '@/components/Toast';
 import { Modal } from '@/components/Modal';
 
@@ -24,12 +25,71 @@ export default function SignUpPage() {
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
   const [isOAuthLoading, setIsOAuthLoading] = useState(false);
   const [showOAuthModal, setShowOAuthModal] = useState(false);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting }
   } = useForm<Values>({ resolver: zodResolver(schema) });
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setToast({ message: 'Please select an image file', type: 'error' });
+        return;
+      }
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setToast({ message: 'Image size must be less than 5MB', type: 'error' });
+        return;
+      }
+      setAvatarFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAvatarPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeAvatar = () => {
+    setAvatarFile(null);
+    setAvatarPreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const uploadAvatar = async (userId: string): Promise<string | null> => {
+    if (!avatarFile) return null;
+
+    const supabase = getSupabase();
+    const fileExt = avatarFile.name.split('.').pop();
+    const fileName = `${userId}_${Date.now()}.${fileExt}`;
+    const filePath = `avatars/${fileName}`;
+
+    // Upload to Supabase Storage
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(filePath, avatarFile, {
+        cacheControl: '3600',
+        upsert: false
+      });
+
+    if (uploadError) {
+      console.error('Avatar upload error:', uploadError);
+      return null;
+    }
+
+    // Get public URL
+    const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
+    return data.publicUrl;
+  };
 
   const onSubmit = async ({ full_name, email, password }: Values) => {
     const supabase = getSupabase();
@@ -38,14 +98,23 @@ export default function SignUpPage() {
       setToast({ message: error.message, type: 'error' });
       return;
     }
-    // If immediately signed in (email confirm disabled), update profile with full_name
+    // If immediately signed in (email confirm disabled), update profile with full_name and avatar
     if (data.session && data.user) {
-      await supabase.from('profiles').update({ full_name }).eq('id', data.user.id);
+      let avatarUrl = null;
+      if (avatarFile) {
+        avatarUrl = await uploadAvatar(data.user.id);
+      }
+      
+      await supabase.from('profiles').update({ 
+        full_name,
+        avatar_url: avatarUrl
+      }).eq('id', data.user.id);
+      
       setToast({ message: 'Account created! Redirecting…', type: 'success' });
       setTimeout(() => router.push('/items'), 600);
     } else {
       // If email confirmation is required, the trigger already created a profile row with email
-      // full_name will be saved after the first sign-in
+      // full_name and avatar will be saved after the first sign-in
       setToast({ message: 'Check your email to confirm your account, then sign in.', type: 'info' });
     }
   };
@@ -78,6 +147,58 @@ export default function SignUpPage() {
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            {/* Profile Picture Upload (Optional) */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Profile Picture <span className="text-gray-400 font-normal">(Optional)</span>
+              </label>
+              <div className="flex items-center gap-4">
+                <div className="relative">
+                  {avatarPreview ? (
+                    <div className="relative">
+                      <Image
+                        src={avatarPreview}
+                        alt="Avatar preview"
+                        width={80}
+                        height={80}
+                        className="rounded-full object-cover border-2 border-gray-200"
+                      />
+                      <button
+                        type="button"
+                        onClick={removeAvatar}
+                        className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                        aria-label="Remove avatar"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="w-20 h-20 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center">
+                      <User className="w-8 h-8 text-gray-400" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleAvatarChange}
+                    className="hidden"
+                    id="avatar-upload"
+                  />
+                  <label
+                    htmlFor="avatar-upload"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg cursor-pointer transition-colors text-sm font-medium text-gray-700"
+                  >
+                    <Upload className="w-4 h-4" />
+                    {avatarPreview ? 'Change Picture' : 'Upload Picture'}
+                  </label>
+                  <p className="text-xs text-gray-500 mt-1">JPG, PNG or GIF. Max 5MB.</p>
+                </div>
+              </div>
+            </div>
+
             {/* Full Name Field */}
             <div>
               <label htmlFor="full_name" className="block text-sm font-medium text-gray-700 mb-2">

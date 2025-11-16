@@ -156,20 +156,20 @@ export function ReportForm() {
         </div>
         <div>
           <label className="block text-sm font-medium mb-1">
-            Contact Email {currentType === 'found' && <span className="text-red-500">*</span>}
+            Contact Email <span className="text-red-500">*</span>
           </label>
           <input 
             type="email" 
             placeholder="you@example.com" 
             {...register('contact', {
-              required: currentType === 'found' ? 'Contact email is required for found items to receive notifications' : false
+              required: 'Contact email is required to receive notifications about your item'
             })} 
             className="w-full border rounded-lg px-3 py-2" 
           />
           {errors.contact && <p className="text-red-600 text-sm mt-1">{errors.contact.message}</p>}
-          {currentType === 'found' && (
-            <p className="text-xs text-gray-500 mt-1">This email will be used to send you notifications when someone claims your found item.</p>
-          )}
+          <p className="text-xs text-gray-500 mt-1">
+            This email will be used to send you notifications when someone finds your lost item or claims your found item.
+          </p>
         </div>
       </div>
 

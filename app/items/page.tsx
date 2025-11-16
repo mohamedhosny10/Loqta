@@ -50,6 +50,27 @@ export default function ItemsPage() {
         setLoading(false);
         return;
       }
+
+      // Fetch profiles separately for all unique user_ids
+      const userIds = [...new Set((data || []).map((row: any) => row.user_id).filter(Boolean))];
+      const profilesMap = new Map<string, { id: string; full_name: string | null; avatar_url: string | null }>();
+      
+      if (userIds.length > 0) {
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('id, full_name, avatar_url')
+          .in('id', userIds);
+        
+        if (profilesData) {
+          profilesData.forEach((profile: any) => {
+            profilesMap.set(profile.id, {
+              id: profile.id,
+              full_name: profile.full_name,
+              avatar_url: profile.avatar_url
+            });
+          });
+        }
+      }
       // Normalize storage image URLs: accept absolute URLs, convert storage paths to public URLs,
       // and fall back to a short-lived signed URL if bucket is private.
       const getNormalizedImageUrl = async (raw: string | null | undefined): Promise<string | undefined> => {
@@ -78,21 +99,29 @@ export default function ItemsPage() {
       };
 
       const mapped: Item[] = await Promise.all(
-        (data || []).map(async (row: any) => ({
-        id: String(row.id),
-        title: row.title,
-        description: row.description ?? '',
-        category: row.category || 'lost',
-        type: (row.category || 'lost') === 'found' ? 'found' : 'lost',
-        location: row.location ?? '',
-        date: row.date ?? new Date().toISOString(),
-          imageUrl: await getNormalizedImageUrl(row.image_url),
-        lat: row.lat ?? 25.2048,
-        lng: row.lng ?? 55.2708,
-        user_id: row.user_id,
-        reward: row.reward ?? null,
-        rewardCurrency: row.reward_currency ?? null
-        }))
+        (data || []).map(async (row: any) => {
+          // Get owner profile from the map
+          const owner = row.user_id && profilesMap.has(row.user_id)
+            ? profilesMap.get(row.user_id)!
+            : null;
+
+          return {
+            id: String(row.id),
+            title: row.title,
+            description: row.description ?? '',
+            category: row.category || 'lost',
+            type: (row.category || 'lost') === 'found' ? 'found' : 'lost',
+            location: row.location ?? '',
+            date: row.date ?? new Date().toISOString(),
+            imageUrl: await getNormalizedImageUrl(row.image_url),
+            lat: row.lat ?? 25.2048,
+            lng: row.lng ?? 55.2708,
+            user_id: row.user_id,
+            reward: row.reward ?? null,
+            rewardCurrency: row.reward_currency ?? null,
+            owner
+          };
+        })
       );
       setItems(mapped);
       setLoading(false);
@@ -155,7 +184,7 @@ export default function ItemsPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {filtered.map((item, idx) => (
           <motion.div key={item.id} initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: idx * 0.03 }}>
-            <ItemCard item={item} />
+            <ItemCard item={item} priority={idx < 6} />
           </motion.div>
         ))}
       </div>

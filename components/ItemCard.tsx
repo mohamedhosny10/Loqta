@@ -1,7 +1,8 @@
 "use client";
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { getSupabase } from '@/lib/supabaseClient';
+import { ItemUserSection } from './ItemUserSection';
 
 export type Item = {
   id: string;
@@ -17,12 +18,29 @@ export type Item = {
   user_id?: string;
   reward?: number | null;
   rewardCurrency?: string | null;
+  owner?: {
+    id: string;
+    full_name?: string | null;
+    avatar_url?: string | null;
+  } | null;
 };
 
-export function ItemCard({ item }: { item: Item }) {
+export function ItemCard({ item, priority = false }: { item: Item; priority?: boolean }) {
   const [imgSrc, setImgSrc] = useState<string | null>(item.imageUrl || null);
   const [isClaiming, setIsClaiming] = useState(false);
   const [claimMessage, setClaimMessage] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const getCurrentUser = async () => {
+      const supabase = getSupabase();
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUserId(user?.id || null);
+    };
+    getCurrentUser();
+  }, []);
+
+  const isOwner = currentUserId && item.user_id && currentUserId === item.user_id;
 
   const handleClaimItem = async () => {
     if (!item.id) return;
@@ -53,12 +71,19 @@ export function ItemCard({ item }: { item: Item }) {
       const data = await response.json();
 
       if (response.ok) {
-        setClaimMessage(data.message || 'Your claim request has been sent to the finder.');
+        // Show success message with email confirmation
+        const successMsg = item.type === 'lost'
+          ? '📨 Email sent! The person who lost this item has been notified.'
+          : '📨 Email sent! The finder has been notified about your claim.';
+        setClaimMessage(successMsg);
       } else {
-        setClaimMessage(data.error || 'Failed to send claim request.');
+        // Show error message
+        const errorMsg = data.error || data.message || 'Failed to send email. Please try again.';
+        setClaimMessage(`Error: ${errorMsg}`);
       }
     } catch (error) {
       setClaimMessage('An error occurred. Please try again.');
+      console.error('Error claiming item:', error);
     } finally {
       setIsClaiming(false);
     }
@@ -70,9 +95,13 @@ export function ItemCard({ item }: { item: Item }) {
         {imgSrc ? (
           <Image
             src={imgSrc}
-            alt={item.title}
+            alt={`${item.title} - ${item.type === 'lost' ? 'Lost' : 'Found'} item`}
             fill
             className="object-cover"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 25vw"
+            priority={priority}
+            loading={priority ? "eager" : "lazy"}
+            quality={85}
             onError={() => setImgSrc(null)}
           />
         ) : (
@@ -87,30 +116,31 @@ export function ItemCard({ item }: { item: Item }) {
           </span>
         </div>
         <p className={`text-xs font-medium mb-1 ${item.type === 'lost' ? 'text-red-600' : 'text-accent'}`}>{item.category}</p>
-        <p className="text-sm text-gray-600 line-clamp-2 mb-2 flex-grow">{item.description}</p>
+        <p className="text-sm text-gray-600 line-clamp-2 mb-3 flex-grow">{item.description}</p>
         {item.type === 'lost' && item.reward && (
-          <p className="text-xs font-semibold text-orange-600 mb-1">
+          <p className="text-xs font-semibold text-orange-600 mb-3">
             Reward: {formatReward(item.reward, item.rewardCurrency)}
           </p>
         )}
-        <div className="text-xs text-gray-500 flex items-center justify-between mb-2">
+        <div className="text-xs text-gray-500 flex items-center justify-between mb-3">
           <span>{item.location}</span>
           <span>{new Date(item.date).toLocaleDateString()}</span>
         </div>
         <div className="mt-auto">
-          {item.type === 'found' ? (
-            <button
-              onClick={handleClaimItem}
-              disabled={isClaiming}
-              className="w-full px-4 py-2 bg-primary text-black rounded-full font-semibold hover:opacity-90 transition-transform hover:scale-[1.02] disabled:opacity-60 disabled:cursor-not-allowed text-sm"
-            >
-              {isClaiming ? 'Sending Request...' : 'I Lost This Item'}
-            </button>
-          ) : (
-            <div className="h-[36px]"></div>
-          )}
+          <ItemUserSection
+            item={item}
+            currentUserId={currentUserId}
+            onActionClick={handleClaimItem}
+            isActionLoading={isClaiming}
+          />
           {claimMessage && (
-            <p className={`mt-2 text-xs ${claimMessage.includes('error') || claimMessage.includes('Failed') ? 'text-red-600' : 'text-green-600'}`}>
+            <p className={`mt-2 text-xs ${
+              claimMessage.includes('error') || claimMessage.includes('Failed') 
+                ? 'text-red-600' 
+                : item.type === 'lost' 
+                  ? 'text-red-600' 
+                  : 'text-green-600'
+            }`}>
               {claimMessage}
             </p>
           )}

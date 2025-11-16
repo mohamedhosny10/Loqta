@@ -242,7 +242,7 @@ export default function MyItemsPage() {
               transition={{ delay: idx * 0.03 }}
               className="group relative"
             >
-              <ItemCard item={item} />
+              <ItemCard item={item} priority={idx < 6} />
               <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
                   onClick={() => handleEdit(item)}
